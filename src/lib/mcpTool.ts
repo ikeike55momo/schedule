@@ -6,13 +6,18 @@ interface McpToolResponse {
   isError?: boolean;
 }
 
+interface WebSocketError extends Event {
+  code?: number;
+  reason?: string;
+}
+
 declare global {
   interface Window {
     mcpTool: {
       use: (params: {
         serverName: string;
         toolName: string;
-        arguments: Record<string, any>;
+        arguments: Record<string, unknown>;
       }) => Promise<McpToolResponse>;
     };
   }
@@ -22,9 +27,9 @@ declare global {
 export const initializeMcpTool = () => {
   if (!window.mcpTool) {
     let ws: WebSocket | null = null;
-    let pendingRequests: Map<string, { 
+    const pendingRequests: Map<string, { 
       resolve: (value: McpToolResponse) => void;
-      reject: (reason: any) => void;
+      reject: (reason: unknown) => void;
     }> = new Map();
 
     const connectWebSocket = (): Promise<WebSocket> => {
@@ -42,9 +47,9 @@ export const initializeMcpTool = () => {
           resolve(ws!);
         };
 
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          reject(error);
+        ws.onerror = (event: WebSocketError) => {
+          console.error('WebSocket error:', event);
+          reject(new Error(`WebSocket connection failed: ${event.type}`));
         };
 
         ws.onclose = () => {

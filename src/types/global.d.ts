@@ -3,7 +3,7 @@ interface Window {
     use: (params: {
       serverName: string;
       toolName: string;
-      arguments: Record<string, any>;
+      arguments: Record<string, string>;
     }) => Promise<{
       content: {
         type: string;

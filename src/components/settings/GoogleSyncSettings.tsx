@@ -32,7 +32,13 @@ export const GoogleSyncSettings = ({ schedules, currentUserId, isAdmin }: Google
     }
 
     try {
-      await syncWithGoogleSheets(schedules, spreadsheetId, sheetRange);
+      await syncWithGoogleSheets({
+        schedules,
+        arguments: {
+          spreadsheetId,
+          sheetRange,
+        },
+      });
       toast.success('スプレッドシートに同期しました');
     } catch (error) {
       console.error('Spreadsheet sync error:', error);
@@ -48,7 +54,13 @@ export const GoogleSyncSettings = ({ schedules, currentUserId, isAdmin }: Google
         ? schedules.filter(s => s.user_id === currentUserId)
         : schedules;
 
-      await syncWithGoogleCalendar(schedulesToSync);
+      await syncWithGoogleCalendar({
+        schedules: schedulesToSync,
+        arguments: {
+          syncMode,
+          userId: syncMode === 'personal' ? currentUserId : undefined,
+        },
+      });
       toast.success(`${syncMode === 'personal' ? '個人' : 'チーム全体'}の予定をGoogle Calendarに同期しました`);
     } catch (error) {
       console.error('Calendar sync error:', error);

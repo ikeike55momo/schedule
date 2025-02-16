@@ -5,75 +5,142 @@ interface McpToolResponse {
     type: string;
     text: string;
   }[];
-  isError?: boolean;
+  ok: boolean;
+}
+
+interface ToolState {
+  loading: boolean;
+  data: McpToolResponse | null;
+  error: string | null;
+}
+
+interface Schedule {
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  memo?: string;
+  user_id: string;
+}
+
+interface ExecuteToolArgs {
+  toolName: string;
+  arguments: Record<string, string>;
+}
+
+interface SyncCalendarArgs {
+  schedules: Schedule[];
+  arguments: {
+    syncMode: 'personal' | 'team';
+    userId?: string;
+  };
+}
+
+interface SyncSheetsArgs {
+  schedules: Schedule[];
+  arguments: {
+    spreadsheetId: string;
+    sheetRange: string;
+  };
 }
 
 export const useMcpTool = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toolState, setToolState] = useState<ToolState>({ loading: false, data: null, error: null });
+  const [pendingRequests, setPendingRequests] = useState<number>(0);
 
-  const syncWithGoogleCalendar = async (schedules: any[]) => {
-    setIsLoading(true);
-    setError(null);
+  const execute = async (args: ExecuteToolArgs): Promise<McpToolResponse> => {
+    setPendingRequests((prev) => prev + 1);
+    setToolState({ loading: true, data: null, error: null });
+
     try {
       const response = await window.mcpTool.use({
-        serverName: 'google',
-        toolName: 'sync_calendar',
-        arguments: {
-          schedules
-        }
+        serverName: 'supabase',
+        methodName: 'execute',
+        arguments: args.arguments,
+        toolName: args.toolName,
       }) as McpToolResponse;
 
-      if (response.isError) {
-        console.error('Calendar sync error response:', response);
-        throw new Error(response.content[0]?.text || '同期に失敗しました');
+      if (!response.ok) {
+        throw new Error(response.content[0]?.text || 'エラーが発生しました');
       }
 
+      setToolState({ loading: false, data: response, error: null });
       return response;
-    } catch (err) {
-      console.error('Calendar sync error details:', err);
-      const message = err instanceof Error ? err.message : '同期中にエラーが発生しました';
-      setError(message);
-      throw err;
+    } catch (error: unknown) {
+      console.error('Error invoking function:', error);
+      const message = error instanceof Error ? error.message : 'エラーが発生しました';
+      setToolState({ loading: false, data: null, error: message });
+      throw error;
     } finally {
-      setIsLoading(false);
+      setPendingRequests((prev) => Math.max(0, prev - 1));
     }
   };
 
-  const syncWithGoogleSheets = async (schedules: any[], spreadsheetId: string, range: string) => {
-    setIsLoading(true);
-    setError(null);
+  const syncWithGoogleCalendar = async (args: SyncCalendarArgs): Promise<McpToolResponse> => {
+    setPendingRequests((prev) => prev + 1);
+    setToolState({ loading: true, data: null, error: null });
+
     try {
       const response = await window.mcpTool.use({
-        serverName: 'google',
-        toolName: 'sync_spreadsheet',
+        serverName: 'supabase',
+        toolName: 'google_calendar',
         arguments: {
-          schedules,
-          spreadsheetId,
-          range
-        }
+          schedules: JSON.stringify(args.schedules),
+          ...args.arguments,
+        },
       }) as McpToolResponse;
 
-      if (response.isError) {
-        console.error('Sync error response:', response);
-        throw new Error(response.content[0]?.text || '同期に失敗しました');
+      if (!response.ok) {
+        throw new Error(response.content[0]?.text || 'エラーが発生しました');
       }
 
+      setToolState({ loading: false, data: response, error: null });
       return response;
-    } catch (err) {
-      console.error('Sync error details:', err);
-      const message = err instanceof Error ? err.message : '同期中にエラーが発生しました';
-      setError(message);
-      throw err;
+    } catch (error: unknown) {
+      console.error('Error syncing with Google Calendar:', error);
+      const message = error instanceof Error ? error.message : 'エラーが発生しました';
+      setToolState({ loading: false, data: null, error: message });
+      throw error;
     } finally {
-      setIsLoading(false);
+      setPendingRequests((prev) => Math.max(0, prev - 1));
+    }
+  };
+
+  const syncWithGoogleSheets = async (args: SyncSheetsArgs): Promise<McpToolResponse> => {
+    setPendingRequests((prev) => prev + 1);
+    setToolState({ loading: true, data: null, error: null });
+
+    try {
+      const response = await window.mcpTool.use({
+        serverName: 'supabase',
+        toolName: 'google_sheets',
+        arguments: {
+          schedules: JSON.stringify(args.schedules),
+          ...args.arguments,
+        },
+      }) as McpToolResponse;
+
+      if (!response.ok) {
+        throw new Error(response.content[0]?.text || 'エラーが発生しました');
+      }
+
+      setToolState({ loading: false, data: response, error: null });
+      return response;
+    } catch (error: unknown) {
+      console.error('Error syncing with Google Sheets:', error);
+      const message = error instanceof Error ? error.message : 'エラーが発生しました';
+      setToolState({ loading: false, data: null, error: message });
+      throw error;
+    } finally {
+      setPendingRequests((prev) => Math.max(0, prev - 1));
     }
   };
 
   return {
+    execute,
     syncWithGoogleCalendar,
     syncWithGoogleSheets,
-    isLoading,
-    error
+    toolState,
+    pendingRequests,
   };
 };
