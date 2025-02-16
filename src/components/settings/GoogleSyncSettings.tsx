@@ -23,7 +23,7 @@ export const GoogleSyncSettings = ({ schedules, currentUserId, isAdmin }: Google
   const [spreadsheetId, setSpreadsheetId] = useState('');
   const [sheetRange, setSheetRange] = useState('シート1!A:E');
   const [syncMode, setSyncMode] = useState<'personal' | 'team'>('personal');
-  const { syncWithGoogleSheets, syncWithGoogleCalendar, isLoading } = useMcpTool();
+  const { syncWithGoogleSheets, syncWithGoogleCalendar } = useMcpTool();
 
   const handleSyncToSheets = async () => {
     if (!spreadsheetId) {
@@ -94,10 +94,9 @@ export const GoogleSyncSettings = ({ schedules, currentUserId, isAdmin }: Google
           </div>
           <Button
             onClick={handleGoogleCalendarSync}
-            disabled={isLoading}
             className="w-full"
           >
-            {isLoading ? '同期中...' : 'Google Calendarに同期'}
+            Google Calendarに同期
           </Button>
         </div>
       </Card>
@@ -127,10 +126,9 @@ export const GoogleSyncSettings = ({ schedules, currentUserId, isAdmin }: Google
             </div>
             <Button
               onClick={handleSyncToSheets}
-              disabled={isLoading}
               className="w-full"
             >
-              {isLoading ? '同期中...' : 'スプレッドシートに同期'}
+              スプレッドシートに同期
             </Button>
           </div>
         </Card>

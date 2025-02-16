@@ -33,3 +33,4 @@ const Toggle = React.forwardRef<
 Toggle.displayName = TogglePrimitive.Root.displayName
 
 export { Toggle, toggleVariantStyles }
+export { toggleVariants } from '@/lib/constants';

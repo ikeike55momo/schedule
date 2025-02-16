@@ -54,10 +54,9 @@ export const useMcpTool = () => {
 
     try {
       const response = await window.mcpTool.use({
-        serverName: 'supabase',
-        methodName: 'execute',
-        arguments: args.arguments,
-        toolName: args.toolName,
+        serverName: 'localhost',
+        toolName: 'execute',
+        arguments: args as Record<string, string>
       }) as McpToolResponse;
 
       if (!response.ok) {
@@ -82,7 +81,7 @@ export const useMcpTool = () => {
 
     try {
       const response = await window.mcpTool.use({
-        serverName: 'supabase',
+        serverName: 'localhost',
         toolName: 'google_calendar',
         arguments: {
           schedules: JSON.stringify(args.schedules),
@@ -112,7 +111,7 @@ export const useMcpTool = () => {
 
     try {
       const response = await window.mcpTool.use({
-        serverName: 'supabase',
+        serverName: 'localhost',
         toolName: 'google_sheets',
         arguments: {
           schedules: JSON.stringify(args.schedules),

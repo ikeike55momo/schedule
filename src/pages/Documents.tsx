@@ -23,7 +23,7 @@ export function Documents() {
 
   useEffect(() => {
     fetchDocuments();
-  }, [currentPath, fetchDocuments]);
+  }, [currentPath]);
 
   const fetchDocuments = useCallback(async () => {
     try {

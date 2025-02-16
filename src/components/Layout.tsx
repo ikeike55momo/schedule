@@ -1,5 +1,7 @@
 import { AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 
 export default function Layout() {
   return (
